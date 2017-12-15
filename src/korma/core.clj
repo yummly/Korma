@@ -548,9 +548,11 @@
    :rpk (raw (eng/prefix child (:pk child)))
    :join-table join-table})
 
-(defn- get-db-keys [parent child {:keys [fk]}]
-  (let [fk-key (or fk (default-fk-name parent))]
-    {:pk (raw (eng/prefix parent (:pk parent)))
+(defn- get-db-keys [parent child {:keys [fk pk]}]
+  (let [fk-key (or fk (default-fk-name parent))
+        pk-key (or pk (:pk parent))]
+    {:pk (raw (eng/prefix parent pk-key))
+     :pk-key pk-key
      :fk (raw (eng/prefix child fk-key))
      :fk-key fk-key}))
 
@@ -609,7 +611,8 @@
 (defmacro has-many
   "Add a has-many relation for the given entity. It is assumed that the foreign key
   is on the sub-entity with the format table_id: user.id = email.user_id
-  Can optionally pass a map with a :fk key to explicitly set the foreign key.
+  Can optionally pass a map with a :fk key to explicitly set the foreign key and :pk
+  to explicitly set the column of the current entity used in the join.
 
   (has-many users email {:fk :emailID})"
   [ent sub-ent & [opts]]
@@ -712,7 +715,8 @@
 
 (defn- with-one-to-many [rel query ent body-fn]
   (let [fk-key (:fk-key rel)
-        pk (get-in query [:ent :pk])
+        pk (or (:pk-key rel)
+               (get-in query [:ent :pk]))
         table (keyword (eng/table-alias ent))
         ent (assoc-db-to-entity query ent)]
     (post-query query
@@ -736,7 +740,7 @@
 
 (defn- get-join-keys [rel ent sub-ent]
   (case (:rel-type rel)
-    :has-one    [(:pk ent) (:fk-key rel)]
+    :has-one    [(or (:pk-key rel) (:pk ent)) (:fk-key rel)]
     :belongs-to [(:fk-key rel) (:pk sub-ent)]))
 
 (defn- with-one-to-one-later [rel query sub-ent body-fn]
@@ -832,7 +836,8 @@
 
 (defn- with-later-batch [rel query ent body-fn]
   (let [fk-key (:fk-key rel)
-        pk (get-in query [:ent :pk])
+        pk (or (:pk-key rel)
+               (get-in query [:ent :pk]))
         table (keyword (eng/table-alias ent))]
     (post-query query
                 (fn [rows]

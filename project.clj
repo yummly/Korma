@@ -1,4 +1,4 @@
-(defproject korma "0.4.3"
+(defproject yummly/korma "0.4.3.1"
   :description "Tasty SQL for Clojure"
   :url "http://github.com/korma/Korma"
   :mailing-list {:name "Korma Google Group"
@@ -11,7 +11,8 @@
 
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [com.mchange/c3p0 "0.9.5.2"]
-                 [org.clojure/java.jdbc "0.6.1"]]
+                 [org.clojure/java.jdbc "0.6.1"]
+                 [org.clojure/tools.logging "0.3.1"]]
 
   :min-lein-version "2.0.0"
 

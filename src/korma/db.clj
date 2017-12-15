@@ -1,7 +1,8 @@
 (ns korma.db
   "Functions for creating and managing database specifications."
   (:require [clojure.java.jdbc :as jdbc]
-            [korma.config :as conf]))
+            [korma.config :as conf]
+            [clojure.tools.logging :as log]))
 
 (defonce _default (atom nil))
 
@@ -267,10 +268,17 @@
 (defn- exec-sql [{:keys [results sql-str params options]}]
   (let [{:keys [keys]} (:naming (or options @conf/options))
         sql-params (apply vector sql-str params)]
-    (case results
-      :results (jdbc/query *current-conn* sql-params {:identifiers keys})
-      :keys (jdbc/db-do-prepared-return-keys *current-conn* sql-params)
-      (jdbc/db-do-prepared *current-conn* sql-params))))
+    (log/debugf "exec-sql start: %s" sql-params)
+    (try
+      (let [ret (case results
+                  :results (jdbc/query *current-conn* sql-params {:identifiers keys})
+                  :keys (jdbc/db-do-prepared-return-keys *current-conn* sql-params)
+                  (jdbc/db-do-prepared *current-conn* sql-params))]
+        (log/debugf "exec-sql ok: %s" sql-params)
+        ret)
+      (catch Exception e
+        (log/debugf e "exec-sql error: %s" sql-params)
+        (throw e)))))
 
 (defmacro with-db
   "Execute all queries within the body using the given db spec"
