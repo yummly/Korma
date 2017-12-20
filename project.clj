@@ -1,4 +1,4 @@
-(defproject yummly/korma "0.4.3.1"
+(defproject yummly/korma "0.4.3.2"
   :description "Tasty SQL for Clojure"
   :url "http://github.com/korma/Korma"
   :mailing-list {:name "Korma Google Group"
