@@ -571,7 +571,8 @@
             :alias (:alias sub-ent)
             :rel-type type}
            db-keys
-           fk-override)))
+           fk-override
+           {:opts opts})))
 
 (defn rel [ent sub-ent type opts]
   (let [var-name (-> sub-ent meta :name)
@@ -852,10 +853,31 @@
                             table (get child-rows-by-pk (get % pk)))
                          rows))))))
 
+(defn- with-one-to-one-later-batch [rel query sub-ent body-fn]
+  (let [sub-ent (assoc-db-to-entity query sub-ent)
+        [ent-key sub-ent-key] (get-join-keys rel (:ent query) sub-ent)]
+    (post-query query
+                (fn [ents]
+                  (let [ent-keys (-> (->> ents
+                                          (map #(get % ent-key))
+                                          set)
+                                     (disj nil))
+                        sub-ents (when (seq ent-keys)
+                                   (select sub-ent
+                                           (body-fn)
+                                           (where {sub-ent-key [in ent-keys]})))
+                        sub-ents-by-key (zipmap (map sub-ent-key sub-ents)
+                                                sub-ents)]
+                    (for [ent ents]
+                      (merge-with-unique-keys (get-key-naming-strategy query)
+                                              ent
+                                              (sub-ents-by-key (get ent ent-key)))))))))
+
 (defn with-batch* [query sub-ent body-fn]
   (let [rel (get-rel (:ent query) sub-ent)]
     (case (:rel-type rel)
-      (:has-one :belongs-to :many-to-many) (with* query sub-ent body-fn)
+      :many-to-many (with* query sub-ent body-fn)
+      (:has-one :belongs-to) (with-one-to-one-later-batch rel query sub-ent body-fn)
       :has-many (with-later-batch rel query sub-ent body-fn)
       (throw (Exception. (str "No relationship defined for table: "
                               (:table sub-ent)))))))
