@@ -469,7 +469,7 @@
   (if-let [preps (-> query :ent :prepares seq)]
     (let [prep-fn (apply comp preps)]
       (case (:type query)
-        :insert (update-in query [:values] #(map prep-fn %))
+        (:insert :insert-ignore-conflicts) (update-in query [:values] #(map prep-fn %))
         :update (update-in query [:set-fields] prep-fn)
         query))
     query))

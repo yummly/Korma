@@ -308,6 +308,16 @@
                    noop-query)]
     (assoc query :sql-str neue-sql)))
 
+(defn sql-insert-ignore-conflicts [query]
+  (let [ins-keys (sort (distinct (mapcat keys (:values query))))
+        keys-clause (utils/comma-separated (map field-identifier ins-keys))
+        ins-values (insert-values-clause ins-keys (:values query))
+        values-clause (utils/comma-separated ins-values)
+        neue-sql (if-not (empty? ins-keys)
+                   (str "INSERT INTO " (table-str query) " " (utils/wrap keys-clause) " VALUES " values-clause " ON CONFLICT DO NOTHING")
+                   noop-query)]
+    (assoc query :sql-str neue-sql)))
+
 ;;*****************************************************
 ;; Sql parts
 ;;*****************************************************
@@ -410,4 +420,6 @@
                  sql-delete
                  sql-where)
      :insert (-> query
-                 sql-insert))))
+                 sql-insert)
+     :insert-ignore-conflicts (-> query
+                                  sql-insert-ignore-conflicts))))
