@@ -251,7 +251,7 @@
                            (map? options))
         {:keys [isolation read-only?]} (when check-options options)
         body (if check-options (rest body) body)]
-    `(jdbc/with-db-transaction [conn# (or *current-conn* (get-connection @_default)) {:isolation ~isolation :read-only? ~read-only?}]
+    `(jdbc/with-db-transaction [conn# (or *current-conn* (get-connection (or *current-db* @_default))) {:isolation ~isolation :read-only? ~read-only?}]
         (binding [*current-conn* conn#]
           ~@body))))
 
