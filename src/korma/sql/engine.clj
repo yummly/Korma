@@ -12,6 +12,7 @@
 (def ^{:dynamic true} *bound-aliases* #{})
 (def ^{:dynamic true} *bound-params* nil)
 (def ^{:dynamic true} *bound-options* nil)
+(def ^{:dynamic true} *bound-location* nil)
 
 ;;*****************************************************
 ;; delimiters
@@ -285,7 +286,9 @@
         modifiers-clause (when (seq (:modifiers query))
                            (str (reduce str (:modifiers query)) " "))
         clauses-str (utils/comma-separated clauses)
-        neue-sql (str "SELECT " modifiers-clause clauses-str)]
+        location (when-let [{:keys [file line column]} *bound-location*]
+                   (format "/* file: %s line: %s column: %s */ " file line column))
+        neue-sql (str "SELECT " location modifiers-clause clauses-str)]
     (assoc query :sql-str neue-sql)))
 
 (defn sql-update [query]

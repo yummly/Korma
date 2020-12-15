@@ -1,0 +1,28 @@
+{:aliases
+   {:1.4 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.4.0"}}},
+    :1.5 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.5.1"}}},
+    :1.6 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.6.0"}}},
+    :1.7 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.7.0"}}},
+    :1.8 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.8.0"}}}
+    :1.10 {:extra-deps #:org.clojure{clojure #:mvn{:version "1.10.1"}}},
+    :dev {:extra-deps {criterium #:mvn{:version "0.4.3"},
+                       gui-diff #:mvn{:version "0.6.6"},
+                       postgresql #:mvn{:version "9.3-1102.jdbc41"},
+                       slamhound #:mvn{:version "1.5.5"}}},
+    :run {:jvm-opts ["-Dline.separator=\n"]},
+    :runner
+      {:extra-deps
+         #:com.cognitect{test-runner
+                           {:git/url
+                              "https://github.com/cognitect-labs/test-runner",
+                            :sha "76568540e7f40268ad2b646110f237a60295fa3c"}},
+       :main-opts ["-m" "cognitect.test-runner" "-d" "test"]},
+    :test {:extra-deps {com.h2database/h2 #:mvn{:version "1.4.187"},
+                        criterium #:mvn{:version "0.4.3"},
+                        mysql/mysql-connector-java #:mvn{:version "5.1.35"},
+                        org.clojure/test.check #:mvn{:version "RELEASE"}},
+           :extra-paths ["test"]}},
+ :deps {com.mchange/c3p0 #:mvn{:version "0.9.5.2"},
+        org.clojure/clojure #:mvn{:version "1.10.1"},
+        org.clojure/java.jdbc #:mvn{:version "0.6.1"},
+        org.clojure/tools.logging #:mvn{:version "0.3.1"}}}

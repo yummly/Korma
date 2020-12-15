@@ -107,10 +107,12 @@
 ;; Query macros
 ;;*****************************************************
 
-(defn- make-query-then-exec [query-fn-var body & args]
-  `(let [query# (-> (~query-fn-var ~@args)
-                    ~@body)]
-     (exec query#)))
+(defn- make-query-then-exec [form query-fn-var body & args]
+  `(binding [eng/*bound-location* (merge {:file ~*file*}
+                                         (select-keys ~form [:line :column]))]
+     (let [query# (-> (~query-fn-var ~@args)
+                      ~@body)]
+       (exec query#))))
 
 (defmacro select
   "Creates a select query, applies any modifying functions in the body and then
@@ -120,7 +122,7 @@
         (fields :name :email)
         (where {:id 2}))"
   [ent & body]
-  (make-query-then-exec #'select* body ent))
+  (make-query-then-exec (meta &form) #'select* body ent))
 
 (defmacro update
   "Creates an update query, applies any modifying functions in the body and then
@@ -131,7 +133,7 @@
         (set-fields {:name \"chris\"})
         (where {:id 4}))"
   [ent & body]
-  (make-query-then-exec #'update* body ent))
+  (make-query-then-exec (meta &form) #'update* body ent))
 
 (defmacro delete
   "Creates a delete query, applies any modifying functions in the body and then
@@ -141,7 +143,7 @@
   ex: (delete user
         (where {:id 7}))"
   [ent & body]
-  (make-query-then-exec #'delete* body ent))
+  (make-query-then-exec (meta &form) #'delete* body ent))
 
 (defmacro insert
   "Creates an insert query, applies any modifying functions in the body
@@ -154,7 +156,7 @@
   ex: (insert user
         (values [{:name \"chris\"} {:name \"john\"}]))"
   [ent & body]
-  (make-query-then-exec #'insert* body ent))
+  (make-query-then-exec (meta &form) #'insert* body ent))
 
 (defmacro union
   "Creates a union query, applies any modifying functions in the body and then
@@ -167,7 +169,7 @@
                    (where {:id 7})))
         (order :name))"
   [& body]
-  (make-query-then-exec #'union* body))
+  (make-query-then-exec (meta &form) #'union* body))
 
 (defmacro union-all
   "Creates a union-all query, applies any modifying functions in the body and then
@@ -180,7 +182,7 @@
                    (where {:id 7})))
         (order :name))"
   [& body]
-  (make-query-then-exec #'union-all* body))
+  (make-query-then-exec (meta &form) #'union-all* body))
 
 (defmacro intersect
   "Creates an intersect query, applies any modifying functions in the body and then
@@ -193,7 +195,7 @@
                    (where {:id 8})))
         (order :name))"
   [& body]
-  (make-query-then-exec #'intersect* body))
+  (make-query-then-exec (meta &form) #'intersect* body))
 
 ;;*****************************************************
 ;; Query parts

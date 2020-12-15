@@ -8,3 +8,5 @@ pom.xml
 *.iml
 /.idea
 .DS_Store
+/.cpcache/
+*~
