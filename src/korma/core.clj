@@ -839,20 +839,23 @@
 
 (defn- with-later-batch [rel query ent body-fn]
   (let [fk-key (:fk-key rel)
-        pk (or (:pk-key rel)
-               (get-in query [:ent :pk]))
-        table (keyword (eng/table-alias ent))]
+        pk     (or (:pk-key rel)
+                   (get-in query [:ent :pk]))
+        table  (keyword (eng/table-alias ent))]
     (post-query query
                 (fn [rows]
-                  (let [fks (map #(get % pk) rows)
-                        child-rows (select ent
-                                           (body-fn)
-                                           (where {fk-key [in fks]})
-                                           (ensure-fields [fk-key])
-                                           (ensure-valid-subquery))
+                  (let [fks              (-> (map #(get % pk) rows)
+                                             set
+                                             (disj nil))
+                        child-rows       (when (seq fks)
+                                           (select ent
+                                                   (body-fn)
+                                                   (where {fk-key [in fks]})
+                                                   (ensure-fields [fk-key])
+                                                   (ensure-valid-subquery)))
                         child-rows-by-pk (group-by fk-key child-rows)]
                     (map #(assoc %
-                            table (get child-rows-by-pk (get % pk)))
+                                 table (get child-rows-by-pk (get % pk)))
                          rows))))))
 
 (defn- with-one-to-one-later-batch [rel query sub-ent body-fn]
